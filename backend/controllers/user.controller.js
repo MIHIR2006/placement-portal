@@ -25,6 +25,15 @@ export const register = async (req, res) => {
                 success: false,
             })
         }
+
+        // Check password length to prevent DoS
+        if (password.length > 100) {
+            return res.status(400).json({
+                message: "Password is too long.",
+                success: false
+            });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await User.create({
@@ -63,6 +72,15 @@ export const login = async (req, res) => {
                 success: false,
             })
         }
+
+        // Check password length to prevent DoS
+        if (password.length > 100) {
+            return res.status(400).json({
+                message: "Incorrect email or password.", // Keep generic message for security
+                success: false
+            });
+        }
+
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
             return res.status(400).json({
@@ -142,8 +160,8 @@ export const updateProfile = async (req, res) => {
         if (skills) user.profile.skills = skillsArray
 
         if (cloudResponse) {
-            user.profile.resume = cloudResponse.secure_url 
-            user.profile.resumeOriginalName = file.originalname 
+            user.profile.resume = cloudResponse.secure_url
+            user.profile.resumeOriginalName = file.originalname
         }
 
         await user.save();
